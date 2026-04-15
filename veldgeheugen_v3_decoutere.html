@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Veldgeheugen — Decoutere</title>
+<style>
+:root {
+  --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a; --surface3:#2a2f45;
+  --accent:#3b82f6; --accent2:#10b981; --warn:#f59e0b; --danger:#ef4444;
+  --text:#e8eaf0; --muted:#8890a4; --border:#2e3347;
+  --chip-off:#1e2235; --chip-on-bg:#1d3a5f; --chip-on-border:#3b82f6; --chip-on-text:#93c5fd;
+  --green-bg:#0d3325; --green-border:#10b981; --green-text:#6ee7b7;
+  --r:10px; --font:'Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;padding-bottom:80px}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px 8px;position:sticky;top:0;z-index:100}
+.hdr-top{display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.logo b{color:var(--accent)}
+.hdr-btns{display:flex;gap:6px}
+.hbtn{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid;cursor:pointer;background:none}
+.hbtn.warn{color:var(--warn);border-color:var(--warn)}
+.hbtn.ai{color:var(--accent2);border-color:var(--accent2)}
+.nav{display:flex;gap:5px;margin-top:9px;overflow-x:auto;padding-bottom:2px}
+.nav::-webkit-scrollbar{display:none}
+.pill{white-space:nowrap;font-size:11px;padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--chip-off);color:var(--muted);cursor:pointer;transition:all .15s}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.pill.done{border-color:var(--accent2);color:var(--accent2)}
+.pbar{height:3px;background:var(--border);margin-top:7px;border-radius:2px;overflow:hidden}
+.pfill{height:100%;background:var(--accent);transition:width .3s;border-radius:2px}
+
+/* SECTIONS */
+.sec{display:none;padding:12px 13px 20px}
+.sec.active{display:block}
+.stitle{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:12px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:11px}
+.ctitle{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.badge{font-size:10px;background:var(--chip-on-bg);color:var(--chip-on-text);border-radius:4px;padding:1px 6px}
+.badge.g{background:var(--green-bg);color:var(--green-text)}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:13px;padding:7px 11px;border-radius:7px;border:1px solid var(--border);background:var(--chip-off);color:var(--text);cursor:pointer;user-select:none;transition:all .12s;line-height:1.2}
+.chip:active{transform:scale(.96)}
+.chip.on{background:var(--chip-on-bg);border-color:var(--chip-on-border);color:var(--chip-on-text);font-weight:600}
+.chip.on.g{background:var(--green-bg);border-color:var(--green-border);color:var(--green-text)}
+
+/* FIELDS */
+.f{margin-bottom:9px}
+.f label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px}
+.f input,.f textarea,.f select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:14px;padding:9px 11px;font-family:var(--font);outline:none}
+.f input:focus,.f textarea:focus,.f select:focus{border-color:var(--accent)}
+.f textarea{resize:vertical;min-height:56px}
+.f select option{background:var(--surface2)}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.r4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+.hint{font-size:11px;color:var(--muted);margin-top:5px}
+
+/* NIVEAU TABS */
+.ntabs{display:flex;gap:4px;margin-bottom:9px;overflow-x:auto}
+.ntabs::-webkit-scrollbar{display:none}
+.ntab{font-size:11px;padding:5px 9px;border-radius:6px;border:1px solid var(--border);background:var(--chip-off);color:var(--muted);cursor:pointer;white-space:nowrap}
+.ntab.active{background:var(--surface2);border-color:var(--accent);color:var(--accent)}
+
+/* DETAIL TABLE */
+.dtable{width:100%;border-collapse:collapse;font-size:12px}
+.dtable th{background:var(--surface2);color:var(--muted);padding:6px 8px;text-align:left;font-weight:500}
+.dtable td{padding:5px 8px;border-top:1px solid var(--border)}
+.dtable input{background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:4px 7px;width:100%;font-family:var(--font)}
+
+/* OUTPUT */
+.outbox{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:13px;font-size:12px;color:var(--text);white-space:pre-wrap;line-height:1.75;min-height:60px;word-break:break-word}
+.cpbtn{width:100%;margin-top:9px;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer}
+.cpbtn:active{opacity:.85}
+.cpbtn.ok{background:var(--accent2)}
+
+/* AI PANEL */
+.ai-panel{background:var(--surface);border:1px solid var(--green-border);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.ai-title{font-size:13px;font-weight:600;color:var(--green-text);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.ai-drop{border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer;transition:border-color .2s}
+.ai-drop:hover,.ai-drop.over{border-color:var(--accent2);color:var(--accent2)}
+.ai-drop input{display:none}
+.ai-status{font-size:12px;margin-top:9px;padding:9px 11px;border-radius:7px;background:var(--surface2);color:var(--muted);min-height:36px;line-height:1.6}
+.ai-status.ok{color:var(--green-text);background:var(--green-bg)}
+.ai-status.err{color:#fca5a5;background:#3b1212}
+.ai-status.loading{color:var(--accent);background:var(--chip-on-bg)}
+.spin{display:inline-block;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* BOTTOM BAR */
+.bbar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:9px 13px;display:flex;gap:8px;z-index:100}
+.pbtn,.nbtn{flex:1;padding:12px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none}
+.pbtn{background:var(--surface2);color:var(--muted)}
+.nbtn{background:var(--accent);color:#fff}
+
+.divider{height:1px;background:var(--border);margin:11px 0}
+.subhead{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px}
+
+/* FOTO SECTIE */
+.foto-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}
+.fcat{font-size:12px;padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:var(--chip-off);color:var(--muted);cursor:pointer;transition:all .15s;position:relative}
+.fcat.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.fcat .fcnt{position:absolute;top:-5px;right:-5px;background:var(--accent2);color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:17px;text-align:center}
+.foto-upload-area{border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer;transition:border-color .2s;margin-bottom:12px}
+.foto-upload-area:hover,.foto-upload-area.over{border-color:var(--accent);color:var(--accent)}
+.foto-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.foto-item{position:relative;border-radius:8px;overflow:hidden;background:var(--surface2);aspect-ratio:1;border:1px solid var(--border)}
+.foto-item img{width:100%;height:100%;object-fit:cover;display:block}
+.foto-item .foto-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.foto-item .foto-lbl{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:10px;padding:3px 5px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.foto-item .foto-lbl input{background:transparent;border:none;color:#fff;font-size:10px;width:100%;padding:0;outline:none;font-family:var(--font)}
+.foto-empty{color:var(--muted);font-size:12px;text-align:center;padding:20px 0}
+.foto-count{font-size:12px;color:var(--muted);margin-bottom:10px}
+.foto-export-info{font-size:11px;color:var(--muted);background:var(--surface2);border-radius:7px;padding:9px 11px;margin-top:10px;line-height:1.6}
+.foto-order-hint{font-size:11px;color:var(--warn);margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo"><b>DECOUTERE</b> · Veldgeheugen</div>
+    <div class="hdr-btns">
+      <button class="hbtn ai" onclick="goTo(0)">+ Document</button>
+      <button class="hbtn warn" onclick="resetAll()">Nieuw</button>
+    </div>
+  </div>
+  <div class="nav" id="nav"></div>
+  <div class="pbar"><div class="pfill" id="pfill"></div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 0 — AI DOCUMENTLEZER
+══════════════════════════════════════════════════════════════ -->
+<div class="sec active" id="s0">
+  <div class="stitle">AI-documentlezer</div>
+
+  <div class="ai-panel">
+    <div class="ai-title">
+      <span style="font-size:18px">📄</span> Opdrachtbrief of eigendomsakte uploaden
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:11px">
+      Laad een PDF of foto van de opdrachtbrief of eigendomsakte. De AI leest alle gegevens uit en vult het formulier automatisch in — naam, adres, kadaster, bemiddelaar, enz.
+    </p>
+    <div class="ai-drop" id="dropzone" onclick="document.getElementById('fileInput').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+      <input type="file" id="fileInput" accept=".pdf,image/*" onchange="handleFile(this.files[0])">
+      <div style="font-size:28px;margin-bottom:6px">⬆</div>
+      <div>Tik om bestand te kiezen</div>
+      <div style="font-size:11px;margin-top:4px;color:var(--border)">PDF · JPG · PNG</div>
+    </div>
+    <div class="ai-status" id="aiStatus">Nog geen document geladen. Upload een opdrachtbrief of akte om te starten.</div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Of snel starten met dossiernummer</div>
+    <div class="r2">
+      <div class="f"><label>Dossiernummer</label><input type="text" id="dossier" placeholder="2026-001"></div>
+      <div class="f"><label>Doel krediet</label><input type="text" id="doel" placeholder="Aankoop / herfinanciering"></div>
+    </div>
+    <div class="f"><label>Datum plaatsbezoek</label><input type="date" id="datum_bezoek"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 1 — AANVRAGER & OPDRACHT
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s1">
+  <div class="stitle">Aanvrager &amp; opdracht</div>
+
+  <div class="card">
+    <div class="ctitle">Aanvrager(s)</div>
+    <div class="r2">
+      <div class="f"><label>Aanvrager 1</label><input type="text" id="aanv1" placeholder="Voornaam Achternaam"></div>
+      <div class="f"><label>Aanvrager 2</label><input type="text" id="aanv2" placeholder="Eventuele partner"></div>
+    </div>
+    <div class="f"><label>Adres aanvrager</label><input type="text" id="straat_aanv" placeholder="Straat + nummer"></div>
+    <div class="r2">
+      <div class="f"><label>Postcode</label><input type="text" id="pc_aanv" placeholder="3500" oninput="autogem('pc_aanv','gem_aanv')"></div>
+      <div class="f"><label>Gemeente</label><input type="text" id="gem_aanv" placeholder="Hasselt"></div>
+    </div>
+    <div class="r2">
+      <div class="f"><label>Telefoon / GSM</label><input type="tel" id="tel_aanv" placeholder="04xx / xx xx xx"></div>
+      <div class="f"><label>E-mail</label><input type="email" id="mail_aanv" placeholder="naam@mail.be"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Bemiddelaar / adviseur</div>
+    <div class="chips" id="chips_bemiddelaar"></div>
+    <div class="f" style="margin-top:9px"><label>Of vrij invullen</label><input type="text" id="bemid_vrij" placeholder="Andere bemiddelaar..."></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 2 — TE SCHATTEN GOED & KADASTER
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s2">
+  <div class="stitle">Te schatten goed &amp; kadaster</div>
+
+  <div class="card">
+    <div class="ctitle">Ligging pand</div>
+    <div class="f"><label>Adres pand</label><input type="text" id="straat_goed" placeholder="Straat + nummer"></div>
+    <div class="r2">
+      <div class="f"><label>Postcode</label><input type="text" id="pc_goed" placeholder="3530" oninput="autogem('pc_goed','gem_goed')"></div>
+      <div class="f"><label>Gemeente</label><input type="text" id="gem_goed" placeholder="wordt automatisch ingevuld"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Kadastrale gegevens</div>
+    <div class="r3">
+      <div class="f"><label>Afdeling nr</label>
+        <select id="afd_nr"><option value="-">-</option><option>1ste</option><option>2de</option><option>3de</option><option>4de</option><option>5de</option><option>6de</option><option>7de</option><option>8ste</option><option>9de</option><option>10de</option></select>
+      </div>
+      <div class="f"><label>Sectie</label>
+        <select id="sectie"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>I</option><option>J</option><option>K</option><option>L</option><option>M</option><option>N</option><option>O</option><option>P</option><option>Q</option><option>R</option><option>S</option><option>T</option><option>U</option></select>
+      </div>
+      <div class="f"><label>Perceelnummer</label><input type="text" id="kad_nr" placeholder="125/R"></div>
+    </div>
+    <div class="r2">
+      <div class="f"><label>Kadastraal inkomen (€)</label><input type="text" id="ki" placeholder="1.258,00"></div>
+      <div class="f"><label>E-peil (kWh/m²/jaar)</label><input type="number" id="epeil" placeholder="0"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Type bebouwing</div>
+    <div class="subhead">Aard</div>
+    <div class="chips" id="chips_aard"></div>
+    <div class="subhead" style="margin-top:10px">Bebouwingstype</div>
+    <div class="chips" id="chips_bebtype"></div>
+    <div class="r2" style="margin-top:10px">
+      <div class="f"><label>Aantal bouwlagen</label><input type="number" id="lagen" placeholder="2" min="1" max="10"></div>
+      <div class="f"><label>Aantal entiteiten</label><input type="number" id="entiteiten" placeholder="1" min="1"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Bouwjaar</div>
+    <div class="chips" id="chips_bouwjaar"></div>
+    <div class="f" style="margin-top:8px"><label>Of exact jaar</label><input type="number" id="bouwjaar_exact" placeholder="1965"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Vergunningen</div>
+    <div class="f"><label>Bouwvergunning (datum / referentie)</label><input type="text" id="bouwverg" placeholder="12/03/1985"></div>
+    <div class="subhead">Bouwmisdrijf</div>
+    <div class="chips" id="chips_misdrijf"></div>
+    <div class="f" style="margin-top:8px"><label>Omschrijving misdrijf</label><input type="text" id="misdrijf_omschr" placeholder="Aard van het misdrijf..."></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 3 — AFMETINGEN
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s3">
+  <div class="stitle">Afmetingen gebouw</div>
+
+  <div class="card">
+    <div class="ctitle">Perceelsafmetingen</div>
+    <div class="r2">
+      <div class="f"><label>Perceelsbreedte (m)</label><input type="number" id="perc_breed" placeholder="0"></div>
+      <div class="f"><label>Perceelsoppervlakte (m²)</label><input type="number" id="perc_opp" placeholder="0"></div>
+    </div>
+    <div class="r2">
+      <div class="f"><label>Breedte voorgevel (m)</label><input type="number" id="gevel_breed" placeholder="0"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Gebouwafmetingen per onderdeel</div>
+    <p class="hint" style="margin-bottom:8px">Vul in wat gemeten werd — lege velden worden overgeslagen</p>
+    <table class="dtable">
+      <thead><tr><th>Onderdeel</th><th>Breedte (m)</th><th>Diepte (m)</th><th>Opp. (m²)</th><th>Hoogte (m)</th></tr></thead>
+      <tbody>
+        <tr><td>Hoofdgebouw GV</td><td><input id="hgv_b" type="number" placeholder="-"></td><td><input id="hgv_d" type="number" placeholder="-"></td><td><input id="hgv_o" type="number" placeholder="-"></td><td><input id="hgv_h" type="number" placeholder="-"></td></tr>
+        <tr><td>Hoofdgebouw 1ste</td><td><input id="h1_b" type="number" placeholder="-"></td><td><input id="h1_d" type="number" placeholder="-"></td><td><input id="h1_o" type="number" placeholder="-"></td><td><input id="h1_h" type="number" placeholder="-"></td></tr>
+        <tr><td>Hoofdgebouw 2de</td><td><input id="h2_b" type="number" placeholder="-"></td><td><input id="h2_d" type="number" placeholder="-"></td><td><input id="h2_o" type="number" placeholder="-"></td><td><input id="h2_h" type="number" placeholder="-"></td></tr>
+        <tr><td>Aanbouw</td><td><input id="aan_b" type="number" placeholder="-"></td><td><input id="aan_d" type="number" placeholder="-"></td><td><input id="aan_o" type="number" placeholder="-"></td><td><input id="aan_h" type="number" placeholder="-"></td></tr>
+        <tr><td>Bijgebouw/garage</td><td><input id="bij_b" type="number" placeholder="-"></td><td><input id="bij_d" type="number" placeholder="-"></td><td><input id="bij_o" type="number" placeholder="-"></td><td><input id="bij_h" type="number" placeholder="-"></td></tr>
+        <tr><td>Tuinberging</td><td><input id="tuin_b" type="number" placeholder="-"></td><td><input id="tuin_d" type="number" placeholder="-"></td><td><input id="tuin_o" type="number" placeholder="-"></td><td><input id="tuin_h" type="number" placeholder="-"></td></tr>
+      </tbody>
+    </table>
+    <div class="r3" style="margin-top:10px">
+      <div class="f"><label>Bewoonbaar opp. (m²)</label><input type="number" id="m2_bewoon" placeholder="0"></div>
+      <div class="f"><label>Volume bewoonbaar (m³)</label><input type="number" id="vol_bewoon" placeholder="0"></div>
+      <div class="f"><label>Volume kelder/zolder (m³)</label><input type="number" id="vol_kelder" placeholder="0"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Opmerkingen afmetingen</div>
+    <div class="f"><textarea id="afm_opm" placeholder="bv. living bijgebouwd achteraan na 2001, geen postinterventiedossier beschikbaar..."></textarea></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 4 — INDELING PER NIVEAU
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s4">
+  <div class="stitle">Indeling per niveau</div>
+  <div class="ntabs" id="niveauTabs"></div>
+  <div id="niveauContent"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 5 — MATERIALEN & BOUWKENMERKEN
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s5">
+  <div class="stitle">Materialen &amp; bouwkenmerken</div>
+
+  <div class="card"><div class="ctitle">Fundering</div><div class="chips" id="chips_fundering"></div></div>
+  <div class="card"><div class="ctitle">Kelder</div><div class="chips" id="chips_kelder"></div></div>
+
+  <div class="card">
+    <div class="ctitle">Gevels / metselwerk</div>
+    <div class="chips" id="chips_gevels"></div>
+  </div>
+
+  <div class="card"><div class="ctitle">Dak</div><div class="chips" id="chips_dak"></div></div>
+  <div class="card"><div class="ctitle">Afvoer / goten</div><div class="chips" id="chips_goten"></div></div>
+  <div class="card"><div class="ctitle">Buitenschrijnwerk</div><div class="chips" id="chips_buiten_schrijn"></div></div>
+
+  <div class="card">
+    <div class="ctitle">Beglazing</div>
+    <div class="chips" id="chips_glas"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Rolluiken</div>
+    <div class="chips" id="chips_rolluiken"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Garagepoort</div>
+    <div class="chips" id="chips_poort"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Binnenschrijnwerk &amp; trap</div>
+    <div class="chips" id="chips_binnen_schrijn"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Vloeren</div>
+    <div class="chips" id="chips_vloeren"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Isolatie</div>
+    <div class="chips" id="chips_isolatie"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Afwerkingsgraad</div>
+    <div class="chips" id="chips_afwerking"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 6 — NUTSVOORZIENINGEN, KEUKEN & BADKAMER
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s6">
+  <div class="stitle">Comfort &amp; installaties</div>
+
+  <div class="card">
+    <div class="ctitle">Nutsvoorzieningen <span class="badge g">meerdere</span></div>
+    <div class="chips" id="chips_nuts"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Verwarming</div>
+    <div class="chips" id="chips_verw"></div>
+    <div class="f" style="margin-top:8px"><label>Detail verwarming</label><input type="text" id="verw_detail" placeholder="bv. vloerverwarming op gelijkvloers..."></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Keuken — uitrusting <span class="badge g">meerdere</span></div>
+    <div class="chips" id="chips_keuken_uit"></div>
+    <div class="subhead" style="margin-top:10px">Kwaliteit</div>
+    <div class="chips" id="chips_keuken_kwal"></div>
+    <div class="f" style="margin-top:8px"><label>Detail keuken (vrij)</label><input type="text" id="keuken_detail" placeholder="Meubel, dampkap, inductie..."></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Gastentoilet</div>
+    <div class="chips" id="chips_gt"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Toilet 2</div>
+    <div class="chips" id="chips_t2"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Badkamer 1</div>
+    <div class="chips" id="chips_bk1"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Badkamer 2</div>
+    <div class="chips" id="chips_bk2"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Wasplaats</div>
+    <div class="chips" id="chips_wasplaats"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Kwaliteit badkamer(s)</div>
+    <div class="chips" id="chips_badkamer"></div>
+    <div class="f" style="margin-top:8px"><label>Detail sanitair (vrij)</label><input type="text" id="sanitair_detail" placeholder="bad, douche, lavabo, toilet..."></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Zonnepanelen</div>
+    <div class="chips" id="chips_zonne"></div>
+    <div class="r2" style="margin-top:8px">
+      <div class="f"><label>Vermogen (kWp)</label><input type="number" id="zonne_kwp" step="0.1" placeholder="4.3"></div>
+      <div class="f"><label>Jaar ingebruikname</label><input type="number" id="zonne_jaar" placeholder="2012"></div>
+    </div>
+    <div class="chips" style="margin-top:8px" id="chips_zonne_cert"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 7 — OMGEVING & LIGGING
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s7">
+  <div class="stitle">Omgeving &amp; ligging</div>
+
+  <div class="card"><div class="ctitle">Omgeving</div><div class="chips" id="chips_omgeving"></div></div>
+  <div class="card"><div class="ctitle">Ligging van de woning</div><div class="chips" id="chips_ligging"></div></div>
+
+  <div class="card">
+    <div class="ctitle">Bereikbaarheid</div>
+    <div class="chips" id="chips_bereikbaarheid"></div>
+    <div class="f" style="margin-top:8px"><label>Mobiscore (/10)</label><input type="number" id="mobiscore" placeholder="7.5" min="0" max="10" step="0.1"></div>
+  </div>
+
+  <div class="card"><div class="ctitle">Openbaar vervoer</div><div class="chips" id="chips_ov"></div></div>
+  <div class="card"><div class="ctitle">Milieuelementen <span class="badge g">meerdere</span></div><div class="chips" id="chips_milieu"></div></div>
+  <div class="card"><div class="ctitle">Erfdienstbaarheden</div><div class="chips" id="chips_erf"></div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 8 — TOESTAND & WAARDEN
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s8">
+  <div class="stitle">Toestand &amp; schattingswaarden</div>
+
+  <div class="card"><div class="ctitle">Staat van onderhoud</div><div class="chips" id="chips_onderhoud"></div></div>
+  <div class="card"><div class="ctitle">Verkoopbaarheid</div><div class="chips" id="chips_verkoop"></div></div>
+  <div class="card"><div class="ctitle">Gebruik van het goed</div><div class="chips" id="chips_gebruik"></div></div>
+
+  <div class="card">
+    <div class="ctitle">Uitgevoerde werken</div>
+    <div class="chips" id="chips_werken"></div>
+    <div class="f" style="margin-top:8px"><label>Detail werken</label><textarea id="werken_detail" placeholder="Beschrijving uitgevoerde werken..."></textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Elementen van waardevermeerdering <span class="badge">meerdere</span></div>
+    <div class="chips" id="chips_appr"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Elementen van waardevermindering <span class="badge">meerdere</span></div>
+    <div class="chips" id="chips_depr"></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Bijzondere elementen</div>
+    <div class="f"><textarea id="bijzonder" placeholder="Bijzondere elementen, opmerkingen..."></textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Schattingswaarden</div>
+    <div class="r2">
+      <div class="f"><label>Gecommuniceerde aankoopprijs (€)</label><input type="number" id="aankoop_prijs" placeholder="0"></div>
+      <div class="f"><label>Vetusteit (%)</label><input type="number" id="vetusteit" placeholder="17.5" step="0.5" min="0" max="100"></div>
+    </div>
+    <div class="r2">
+      <div class="f"><label>OHV huidig (€)</label><input type="number" id="ohv_huidig" placeholder="0"></div>
+      <div class="f"><label>OHV na werken (€)</label><input type="number" id="ohv_na" placeholder="0"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="subhead">Werken</div>
+    <div class="r2">
+      <div class="f"><label>Klant — aannemer (€)</label><input type="number" id="werk_klant_aan" placeholder="0"></div>
+      <div class="f"><label>Klant — eigen werk (€)</label><input type="number" id="werk_klant_eigen" placeholder="0"></div>
+    </div>
+    <div class="r2">
+      <div class="f"><label>Schatter — aannemer (€)</label><input type="number" id="werk_sch_aan" placeholder="0"></div>
+      <div class="f"><label>Schatter — eigen werk (€)</label><input type="number" id="werk_sch_eigen" placeholder="0"></div>
+    </div>
+    <div class="f"><label>Motivatie verschil raming</label><textarea id="werk_verschil" placeholder="Motivatie verschil raming..."></textarea></div>
+    <div class="f"><label>Vergelijkingspunten</label><textarea id="vergelijk" placeholder="Vergelijkingspunten..." style="min-height:80px"></textarea></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 9 — FOTO'S
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s9">
+  <div class="stitle">Foto's koppelen aan dossier</div>
+
+  <div class="card">
+    <div class="ctitle">Dossiernummer</div>
+    <div style="font-size:13px;color:var(--text);padding:4px 0" id="foto_dossier_label">—</div>
+    <div class="hint">Foto's worden per dossier opgeslagen in de browser. Ze blijven bewaard ook als je de app sluit.</div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Categorie</div>
+    <div class="foto-cats" id="fotoCats"></div>
+  </div>
+
+  <div class="card" id="fotoUploadCard">
+    <div class="ctitle" id="fotoUploadTitle">Foto's toevoegen</div>
+    <div class="foto-order-hint" id="fotoOrderHint"></div>
+    <div class="foto-upload-area" id="fotoDropzone"
+         onclick="document.getElementById('fotoInput').click()"
+         ondragover="fotoDragOver(event)" ondragleave="fotoDragLeave(event)" ondrop="fotoDrop(event)">
+      <input type="file" id="fotoInput" accept="image/*" multiple capture="environment"
+             onchange="handleFotos(this.files)" style="display:none">
+      <div style="font-size:32px;margin-bottom:6px">📷</div>
+      <div style="font-weight:600">Tik om foto's te kiezen</div>
+      <div style="font-size:11px;margin-top:4px">of sleep foto's hiernaartoe · meerdere tegelijk mogelijk</div>
+    </div>
+    <div class="foto-count" id="fotoCount"></div>
+    <div class="foto-grid" id="fotoGrid"></div>
+    <div class="foto-empty" id="fotoEmpty">Nog geen foto's in deze categorie</div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Overzicht alle foto's</div>
+    <div id="fotoOverzicht" style="font-size:12px;color:var(--muted)">Nog geen foto's toegevoegd.</div>
+    <div class="foto-export-info">
+      <strong style="color:var(--text)">Hoe foto's in het verslag krijgen:</strong><br>
+      1. Gebruik de "Exporteer naar Excel" knop op het resultaatscherm<br>
+      2. Of: open de foto in de app → tik lang → "Sla op" → sleep naar Excel<br>
+      3. De volgorde in de categorie = de volgorde in het verslag
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Foto's exporteren</div>
+    <button class="cpbtn" onclick="exportAllPhotos()" style="margin-bottom:8px">Alle foto's downloaden (ZIP)</button>
+    <button class="cpbtn" onclick="exportPhotoList(this)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border)">Fotolijst kopiëren voor Excel</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SEC 10 — RESULTAAT
+══════════════════════════════════════════════════════════════ -->
+<div class="sec" id="s10">
+  <div class="stitle">Samenvatting voor Excel</div>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:13px">Kopieer de gewenste secties en plak ze in het Veldgeheugen-tabblad van je Excel-verslag.</p>
+
+  <div class="card"><div class="ctitle">Algemene gegevens + kadaster</div><div class="outbox" id="out_algemeen"></div><button class="cpbtn" onclick="cp('out_algemeen',this)">Kopiëren</button></div>
+  <div class="card"><div class="ctitle">Indeling per niveau</div><div class="outbox" id="out_indeling"></div><button class="cpbtn" onclick="cp('out_indeling',this)">Kopiëren</button></div>
+  <div class="card"><div class="ctitle">Materialen &amp; bouwkenmerken</div><div class="outbox" id="out_mat"></div><button class="cpbtn" onclick="cp('out_mat',this)">Kopiëren</button></div>
+  <div class="card"><div class="ctitle">Comfort &amp; installaties</div><div class="outbox" id="out_comfort"></div><button class="cpbtn" onclick="cp('out_comfort',this)">Kopiëren</button></div>
+  <div class="card"><div class="ctitle">Omgeving &amp; toestand</div><div class="outbox" id="out_omg"></div><button class="cpbtn" onclick="cp('out_omg',this)">Kopiëren</button></div>
+  <div class="card"><div class="ctitle">Schattingswaarden</div><div class="outbox" id="out_waarden"></div><button class="cpbtn" onclick="cp('out_waarden',this)">Kopiëren</button></div>
+  <div class="card" style="border-color:var(--accent2)"><div class="ctitle" style="color:var(--green-text)">Volledig verslag — alles in één</div><div class="outbox" id="out_alles"></div><button class="cpbtn" onclick="cp('out_alles',this)" style="background:var(--accent2)">Alles kopiëren</button></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bbar">
+  <button class="pbtn" id="prevBtn" onclick="nav(-1)">← Vorige</button>
+  <button class="nbtn" id="nextBtn" onclick="nav(1)">Volgende →</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════ DATA
+
+const SECS = ['Document','Aanvrager','Goed & Kad.','Afmetingen','Indeling','Materialen','Comfort','Omgeving','Toestand',"Foto's",'Resultaat'];
+
+const PC = {3500:'Hasselt',3501:'Hasselt',3510:'Hasselt',3511:'Hasselt',3512:'Hasselt',3520:'Zonhoven',3521:'Zonhoven',3530:'Houthalen-Helchteren',3531:'Houthalen-Helchteren',3540:'Herk-de-Stad',3545:'Halen',3550:'Heusden-Zolder',3560:'Lummen',3570:'Alken',3580:'Beringen',3581:'Beverlo',3582:'Koersel',3583:'Paal',3590:'Diepenbeek',3600:'Genk',3620:'Lanaken',3621:'Rekem',3630:'Maasmechelen',3631:'Boorsem',3632:'Uikhoven',3640:'Kinrooi',3650:'Dilsen-Stokkem',3660:'Opglabbeek',3665:'As',3668:'As',3670:'Oudsbergen',3680:'Maaseik',3690:'Zutendaal',3700:'Tongeren',3717:'Herstappe',3720:'Kortessem',3721:'Kortessem',3722:'Kortessem',3723:'Guigoven',3724:'Vliermaal',3730:'Hoeselt',3732:'Romershoven',3740:'Bilzen',3742:'Bilzen',3746:'Bilzen',3770:'Riemst',3790:'Voeren',3800:'Sint-Truiden',3803:'Duras',3806:'Velm',3830:'Wellen',3831:'Herten',3840:'Borgloon',3850:'Nieuwerkerken',3870:'Heers',3890:'Gingelom',3891:'Borlo',3900:'Overpelt',3910:'Neerpelt',3920:'Lommel',3930:'Hamont-Achel',3940:'Hechtel-Eksel',3941:'Eksel',3945:'Ham',3950:'Bocholt',3960:'Bree',3970:'Leopoldsburg',3971:'Heppen',3980:'Tessenderlo',3990:'Peer'};
+
+const NIVEAUS = ['-2','-1','0','+1','+2','+3','Bijgebouw'];
+const NIV_ITEMS = {
+  '-2':['-','garage,','stookplaats,','stookolieopslag,','technische ruimte,','voorraadkelder,','bergkelders,','hobbyruimte,','bergkelder,','2 bergkelders,','3 bergkelders,','4 bergkelders,','bergkelder.'],
+  '-1':['-','garage,','stookplaats,','stookolieopslag,','technische ruimte,','voorraadkelder,','bergkelders,','hobbyruimte,','bergkelder,','2 bergkelders,','bergkelder.','kruipruimte,','waskelder,','tuinberging,'],
+  '0':['-','overdekte inkom,','hal,','traphal,','toilet,','2 toiletten,','zithoek,','eethoek,','salon,','living,','keuken,','open keuken,','veranda,','nachthal,','badkamer,','2 badkamers,','dressing,','slaapkamer,','2 slaapkamers,','3 slaapkamers,','4 slaapkamers,','technische ruimte,','bureau,','wasplaats,','hobbyruimte,','stookplaats,','berging,','overdekt terras,','terras,','garage,','berging.'],
+  '+1':['-','overloop,','hal,','traphal,','toilet,','2 toiletten,','zithoek,','eethoek,','salon,','living,','keuken,','veranda,','nachthal,','badkamer,','2 badkamers,','dressing,','slaapkamer,','2 slaapkamers,','3 slaapkamers,','4 slaapkamers,','bureau,','wasplaats,','hobbyruimte,','stookplaats,','berging,','overdekt terras,','terras,','balkon,','berging.','technische ruimte,','linnenkamer,','zolder.'],
+  '+2':['-','overloop,','hal,','traphal,','toilet,','2 toiletten,','nachthal,','badkamer,','2 badkamers,','dressing,','slaapkamer,','2 slaapkamers,','3 slaapkamers,','4 slaapkamers,','bureau,','wasplaats,','hobbyruimte,','berging,','overdekt terras,','terras,','balkon,','bibliotheek,','technische ruimte,','linnenkamer,','zolder.'],
+  '+3':['-','overloop,','hal,','traphal,','toilet,','nachthal,','badkamer,','dressing,','slaapkamer,','2 slaapkamers,','3 slaapkamers,','bureau,','hobbyruimte,','berging,','terras,','balkon,','zolder.'],
+  'Bijgebouw':['-','garage,','tuinberging,','afdak,','pergola,','carport,','stal,','stallen,','zwembad,','poolhouse,','bar,','toilet,','kleedkamer,','technische ruimte,','magazijn,','werkplaats,','atelier,','garage.','tuinberging.']
+};
+
+const CHIPS = {
+  bemiddelaar:{s:true,i:['DEMETS ADVOCATEN','ING HASSELT','ING HECHTEL-EKSEL','ING HOEPERTINGEN','ING HEUSDEN','ING KURINGEN','ING WELLEN','ING ZOLDER','ING ZONHOVEN','ING']},
+  aard:{s:false,i:['Woonhuis','Appartementen','Studio\'s','(Studenten)kamers','(deels) professioneel gebruik','Garage','Box','Parkeerplaats','Opbrengstpand']},
+  bebtype:{s:true,i:['HOB (halfopen)','GB (gesloten)','OB (open)','Vrijstaand']},
+  bouwjaar:{s:true,i:['-','Kon niet meegedeeld worden','Opgericht voor 1800','Opgericht tussen 1800 en 1849','Opgericht tussen 1850 en 1899','Opgericht tussen 1900 en 1918','Opgericht tussen 1919 en 1929','Andere']},
+  misdrijf:{s:true,i:['Geen','Aanwezig']},
+  fundering:{s:true,i:['Fundering in beton','Beperkte fundering']},
+  kelder:{s:true,i:['Geen kelder.','Kruipruimte.','Kruipkelder.','Kelder in metselwerk.','Kelder in metselwerk en beton.','Kelder in beton.','-']},
+  gevels:{s:true,i:['Handvorm gevelsteen.','Machinesteen.','Gevelsteen en breuksteen.','Gevelsteen en buitenpleisterwerk.','Gevelsteen en natuursteen.','Gevelpleisterwerk.','Geglazuurde gevelsteen.','Gevelsteen en metaalprofielplaat.','Industriële gevelpanelen.','Gevelsteen en sierelementen in keramiek.','-']},
+  dak:{s:true,i:['Pannen.','Tegelpannen.','Pannen en roofing.','Pannen en rubber.','Leien.','Leien en roofing.','Roofing.','Roofing en golfplaat.','Metalen dakpanplaten.','Singles.','Geprofileerde staalplaat.','Golfplaat.','Industriële dakpanelen.','-']},
+  goten:{s:true,i:['Zink.','Zink en kunststof.','Kunststof.','Aluminium.','Zink en gietijzer.','Koper.','-']},
+  buiten_schrijn:{s:true,i:['Kunststof.','Hout.','Aluminium.','Kunststof en hout.','Kunststof en aluminium.','Hout en aluminium.','-']},
+  glas:{s:true,i:['Enkel glas.','Deels enkel en deels dubbel glas.','Dubbele beglazing.','Dubbele isolerende beglazing.','Driedubbel glas.','Isolerende zonwerende beglazing.','Super isolerende beglazing.','-']},
+  rolluiken:{s:true,i:['Geen rolluiken.','Gedeeltelijk voorzien van rolluiken.','Rolluiken.','Rolluiken, deel elektrisch bediend.','Elektrisch bediende rolluiken.','Houten sierluiken.']},
+  poort:{s:true,i:['Geen garagepoort.','Metalen wentelpoort.','Sectionaalpoort.','Houten garagepoort.','Geautomatiseerde metalen wentelpoort.','Geautomatiseerde sectionaalpoort.','Geautomatiseerd hekwerk.','Metalen schuifpoort.','-']},
+  binnen_schrijn:{s:false,i:['Schilderdeuren.','Paneeldeuren.','MDF.','Fineer.','Massief hout.','Glazen binnendeur.','Trap in beton.','Trap in hout.','Trap in eik.','Trap in beuk.','Inbouwkasten.','Maatmeubilair.','-']},
+  vloeren:{s:false,i:['Tegels.','Vinyl.','Tapijt.','Vinyllaminaat.','Laminaat.','Parket.','Beton.','Tegels en natuursteen.','Tegels en parket.','Tegels en laminaat.','-']},
+  isolatie:{s:true,i:['Dak.','Gevels.','Dak en gevels.','Dak, gevels en vloer.','Gevels en vloer.','Geen.','-','E-peil kon niet meegedeeld worden.','E-peil: (zie veld)']},
+  afwerking:{s:true,i:['Luxueus.','Normaal.','Sober.','-']},
+  nuts:{s:false,i:['Elektriciteit,','water,','gas,','openbare riolering,','telekabel,','telefoon.']},
+  verw:{s:true,i:['Centrale verwarming op stookolie.','Centrale verwarming op aardgas.','Elektrische verwarming.','Warmtepomp.','Pellets/hout.','Vloerverwarming.','Kachel.','Niet aanwezig.','Stookolie en gas.','Gas en elektrisch.','Gas en haard of kachel.','Stookolie en elektrisch.']},
+  keuken_uit:{s:false,i:['Meubel','Dampkap','Elektrische kookplaten','Keramische kookplaten','Inductiekookplaten','Gaskookplaten','Oven','Microgolfoven','Combi-microgolfoven','Stoomoven','Grill','Koffiezetapparaat','Diepvries','Koelkast','Gootsteen','Vaatwas']},
+  keuken_kwal:{s:true,i:['Geen keuken.','Zeer sobere keuken.','Sobere keuken.','Normale keuken.','Normale, goed uitgeruste keuken.','Normale, volledig uitgeruste keuken.','Luxueuze keuken.','-']},
+  gt:{s:false,i:['WC','Hang-WC','Lavabo','Lavabo met meubel']},
+  t2:{s:false,i:['WC','Gang-WC','Lavabo','Lavabo met meubel']},
+  bk1:{s:false,i:['Douche','Ligbad','Massageligbad','WC','Hang-WC','Lavabo','2 wastafels','Lavabo met meubel','2 wastafels met meubel','Bidet']},
+  bk2:{s:false,i:['Douche','Ligbad','Massageligbad','WC','Hang-WC','Lavabo','2 wastafels','Lavabo met meubel','2 wastafels met meubel','Bidet']},
+  wasplaats:{s:false,i:['Uitgietbak','Aansluitingen wasmachine','Aansluitingen wasmachine en droogkast']},
+  badkamer:{s:true,i:['Geen badkamer.','Sobere badkamer.','Normale badkamer.','Luxueuze badkamer.','Meerdere normale badkamers.','Meerdere luxueuze badkamers.','-']},
+  zonne:{s:true,i:['Geen zonnepanelen','Met zonnepanelen']},
+  zonne_cert:{s:true,i:['Geen recht op groenestroomcertificaten.','Heeft recht op groenestroomcertificaten.']},
+  omgeving:{s:true,i:['Residentiële omgeving.','Residentiële, semi commerciële omgeving.','Commerciële, semi residentiële omgeving.','Sociale wijk.','Nieuwbouwwijk.','Villawijk.','Landelijk.','Wijk met kleinere woningen.','Wijk met middelgrote woningen.','Wijk met grote woningen.','Residentiële wijk.','Semi commerciële omgeving.','Commerciële omgeving.','Industriële omgeving.','Recreatieve omgeving.','Groene omgeving.','Mijnconcessie.']},
+  ligging:{s:true,i:['Stadscentrum.','Stadsrand.','Dorpscentrum.','Rand van de bebouwde kom.','Woongebied.','Woongebied met landelijk karakter.','Agrarisch gebied.','Recreatiezone.','Industriezone.','KMO-zone.','Parkgebied.','Natuurgebied.','Groene omgeving.']},
+  bereikbaarheid:{s:true,i:['Zeer goed bereikbaar.','Goed bereikbaar.','Normaal bereikbaar.','Slecht bereikbaar.','Zeer slecht bereikbaar.','Mobiscore /10.']},
+  ov:{s:true,i:['Belbus.','Bus.','Bus en trein.','-']},
+  milieu:{s:false,i:['Rustige omgeving.','Natuurgebied in nabijheid.','Plein of park in de nabijheid.','Drukke verbindingsweg.','Schietterrein van strijdkrachten.','Vliegveld.','Spoorweg.','Industrie.','Autoweg.','Hoogspanning.','Landbouwbedrijf in omgeving.','-']},
+  erf:{s:true,i:['Geen.','Mede-eigendom.','Belast met een erfdienstbaarheid.','Bereikbaar via een erfdienstbaarheid.','Belast met een erfdienstbaarheid van lichten en zichten.','Genot van erfdienstbaarheid van lichten en zichten.','Erfdienstbare strook waterloop voor ruimingswerken.']},
+  onderhoud:{s:true,i:['Zeer goed.','Goed.','Normaal.','Matig.','Slecht.','Zeer slecht.','Nog op te richten.','Nog af te werken.']},
+  verkoop:{s:true,i:['Zeer goed.','Goed.','Normaal.','Matig.','Slecht.','Zeer slecht.','-']},
+  gebruik:{s:true,i:['Bewoond door de eigenaar.','Bewoond door de aanvrager.','Leegstaand.','Zal bewoond worden door de aanvrager.','Verhuurd.','Zal verhuurd worden.','Zal deels bewoond worden door de eigenaar en deels verhuurd worden.']},
+  werken:{s:true,i:['Geen.','Oprichten van het goed conform de plannen.','Opfrissingswerken.','Energiebesparende maatregelen.','-']},
+  appr:{s:false,i:['Vlotte bereikbaarheid.','Terreinoppervlakte.','Perceelsbreedte.','Oriëntatie.','Volume van het gebouw.','Mogelijkheden van het goed.','Natuurgebied in de nabijheid.','Rustige ligging.','Huuropbrengst.','De goede staat van onderhoud.','De mooie tuin.','De bereikbaarheid van het terrein langs de achterzijde.','De commercieel interessante ligging.','Kleine schrijfgeld.','De groenbuffer in de nabijheid.','Het karakter van het gebouw.','Alle woonvertrekken op de gelijkvloerse verdieping.']},
+  depr:{s:false,i:['Beperkte terreinoppervlakte.','Beperkte perceelsbreedte.','Beperkte volume.','Oriëntatie.','Staat van onderhoud.','Zonevreemd.','Bestaand huurcontract.','De gesloten bebouwing.','De nog uit te voeren werken.','De keuken.','De badkamer.','De afwezigheid van centrale verwarming.','De afwezigheid van een lift.','De ouderdom van het gebouw.','De spoorweg in de nabijheid.','De hoogspanning in de nabijheid.','Het vliegveld in de nabijheid.','Het schietterrein in de nabijheid.','Industrie in de nabijheid.','Landbouwbedrijf in de nabijheid.','Autoweg in de nabijheid.','Hinder langs een drukke verbindingsweg.','De afwezigheid van autostandplaats of garage.','De bouwovertreding.','Niveau terrein t.o.v. voorliggende weg.','De noodzakelijke werken.','De grillige perceelvorm.','De erfdienstbaarheid.']}
+};
+
+// ═══════════════════════════════════════════════════════════ STATE
+let cur = 0;
+const ST = {chips:{}, niveau:{}};
+NIVEAUS.forEach(n => ST.niveau[n] = []);
+
+// ═══════════════════════════════════════════════════════════ INIT
+function init() {
+  buildNav();
+  buildAllChips();
+  buildNiveauUI();
+  document.getElementById('datum_bezoek').value = new Date().toISOString().split('T')[0];
+  updateNav();
+}
+
+function buildNav() {
+  const el = document.getElementById('nav');
+  SECS.forEach((s,i) => {
+    const b = document.createElement('button');
+    b.className='pill'+(i===0?' active':'');
+    b.textContent=s;
+    b.onclick=()=>goTo(i);
+    el.appendChild(b);
+  });
+}
+
+function buildAllChips() {
+  Object.entries(CHIPS).forEach(([k,cfg])=>{
+    const el = document.getElementById('chips_'+k);
+    if(!el) return;
+    ST.chips[k]=[];
+    cfg.i.forEach(item=>{
+      const b=document.createElement('button');
+      b.className='chip'+(cfg.s?' radio-chip':'');
+      b.textContent=item;
+      b.onclick=()=>toggleChip(k,item,cfg.s,b);
+      el.appendChild(b);
+    });
+  });
+}
+
+function buildNiveauUI() {
+  const tabs=document.getElementById('niveauTabs');
+  NIVEAUS.forEach((n,i)=>{
+    const b=document.createElement('button');
+    b.className='ntab'+(i===0?' active':'');
+    b.textContent='Niv. '+n;
+    b.onclick=()=>showNiv(n,b);
+    tabs.appendChild(b);
+  });
+  showNiv('-2',tabs.firstChild);
+}
+
+function showNiv(niv,activeBtn) {
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('active'));
+  activeBtn.classList.add('active');
+  const cont=document.getElementById('niveauContent');
+  cont.innerHTML='';
+  const card=document.createElement('div');
+  card.className='card';
+  card.innerHTML=`<div class="ctitle">Niveau ${niv}</div><div class="chips" id="nc_${niv}"></div><div class="f" style="margin-top:9px"><label>Opmerking niveau ${niv}</label><textarea id="nopm_${niv}" placeholder="Vrije opmerking..." style="min-height:44px"></textarea></div>`;
+  cont.appendChild(card);
+  NIV_ITEMS[niv].forEach(item=>{
+    const b=document.createElement('button');
+    b.className='chip'+(ST.niveau[niv].includes(item)?' on':'');
+    b.textContent=item;
+    b.onclick=()=>{
+      if(ST.niveau[niv].includes(item)){
+        ST.niveau[niv]=ST.niveau[niv].filter(x=>x!==item);
+        b.classList.remove('on');
+      } else {
+        if(item==='-') ST.niveau[niv]=['-'];
+        else { ST.niveau[niv]=ST.niveau[niv].filter(x=>x!=='-'); ST.niveau[niv].push(item); }
+        document.querySelectorAll(`#nc_${niv} .chip`).forEach(c=>c.classList.toggle('on',ST.niveau[niv].includes(c.textContent)));
+      }
+    };
+    document.getElementById('nc_'+niv)?.appendChild(b);
+  });
+}
+
+function toggleChip(k,item,single,btn) {
+  if(single){
+    ST.chips[k]=[item];
+    btn.closest('.chips').querySelectorAll('.chip').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+  } else {
+    if(ST.chips[k].includes(item)){ST.chips[k]=ST.chips[k].filter(x=>x!==item);btn.classList.remove('on');}
+    else{ST.chips[k].push(item);btn.classList.add('on');}
+  }
+}
+
+// ═══════════════════════════════════════════════════════════ NAVIGATE
+function nav(dir){goTo(cur+dir);}
+function goTo(i){
+  if(i<0||i>=SECS.length) return;
+  if(i===SECS.length-1) buildOutput();
+  document.querySelectorAll('.sec').forEach((s,idx)=>s.classList.toggle('active',idx===i));
+  document.querySelectorAll('.pill').forEach((p,idx)=>{
+    p.classList.toggle('active',idx===i);
+    if(idx<i)p.classList.add('done'); else p.classList.remove('done');
+  });
+  cur=i; updateNav(); window.scrollTo(0,0);
+}
+function updateNav(){
+  document.getElementById('prevBtn').style.display=cur===0?'none':'';
+  document.getElementById('nextBtn').textContent=cur===SECS.length-1?'Klaar ✓':'Volgende →';
+  document.getElementById('pfill').style.width=((cur/(SECS.length-1))*100)+'%';
+}
+
+// ═══════════════════════════════════════════════════════════ POSTCODE
+function autogem(pcId,gemId){
+  const g=PC[parseInt(document.getElementById(pcId).value)];
+  if(g) document.getElementById(gemId).value=g;
+}
+
+// ═══════════════════════════════════════════════════════════ DRAG & DROP
+function dragOver(e){e.preventDefault();document.getElementById('dropzone').classList.add('over');}
+function dragLeave(){document.getElementById('dropzone').classList.remove('over');}
+function dropFile(e){e.preventDefault();dragLeave();const f=e.dataTransfer.files[0];if(f)handleFile(f);}
+
+// ═══════════════════════════════════════════════════════════ AI DOCUMENT READER
+async function handleFile(file){
+  if(!file) return;
+  const st=document.getElementById('aiStatus');
+  st.className='ai-status loading';
+  st.innerHTML='<span class="spin">⟳</span>  Document wordt gelezen door AI...';
+
+  try {
+    const b64 = await toBase64(file);
+    const isImg = file.type.startsWith('image/');
+    const isPdf = file.type==='application/pdf';
+    if(!isImg && !isPdf){st.className='ai-status err';st.textContent='Enkel PDF en afbeeldingen worden ondersteund.';return;}
+
+    const prompt = `Je bent een assistent voor landmeter-expert Guy Decoutere. Lees dit document (opdrachtbrief, eigendomsakte, compromis of aanvraagformulier) en extraheer alle beschikbare gegevens. Geef ze terug als geldig JSON met EXACT deze structuur (laat velden leeg "" als niet gevonden):
+{
+  "dossier": "",
+  "doel": "",
+  "datum_bezoek": "",
+  "aanv1": "",
+  "aanv2": "",
+  "straat_aanv": "",
+  "pc_aanv": "",
+  "gem_aanv": "",
+  "tel_aanv": "",
+  "mail_aanv": "",
+  "bemiddelaar": "",
+  "straat_goed": "",
+  "pc_goed": "",
+  "gem_goed": "",
+  "afd_nr": "",
+  "sectie": "",
+  "kad_nr": "",
+  "ki": "",
+  "perc_opp": "",
+  "perc_breed": "",
+  "bouwjaar": "",
+  "epeil": "",
+  "bouwverg": "",
+  "notaris": "",
+  "opmerkingen": ""
+}
+Geef ALLEEN de JSON terug, geen uitleg, geen markdown-backticks.`;
+
+    const content = isImg
+      ? [{type:'image',source:{type:'base64',media_type:file.type,data:b64}},{type:'text',text:prompt}]
+      : [{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},{type:'text',text:prompt}];
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content}]})
+    });
+    const data = await resp.json();
+    const txt = data.content.map(c=>c.text||'').join('').trim().replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(txt);
+    fillFromDoc(parsed);
+    st.className='ai-status ok';
+    const found = Object.values(parsed).filter(v=>v&&v.trim()).length;
+    st.textContent = `✓ Document verwerkt — ${found} velden automatisch ingevuld. Controleer en vul aan waar nodig.`;
+  } catch(e){
+    console.error(e);
+    document.getElementById('aiStatus').className='ai-status err';
+    document.getElementById('aiStatus').textContent='Fout bij verwerking: '+e.message+'. Probeer opnieuw of vul manueel in.';
+  }
+}
+
+function toBase64(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result.split(',')[1]);
+    r.onerror=()=>rej(new Error('Leesfout'));
+    r.readAsDataURL(file);
+  });
+}
+
+function fillFromDoc(d){
+  const set=(id,val)=>{const el=document.getElementById(id);if(el&&val)el.value=val;};
+  set('dossier',d.dossier); set('doel',d.doel); set('datum_bezoek',d.datum_bezoek);
+  set('aanv1',d.aanv1); set('aanv2',d.aanv2);
+  set('straat_aanv',d.straat_aanv); set('pc_aanv',d.pc_aanv); set('gem_aanv',d.gem_aanv);
+  set('tel_aanv',d.tel_aanv); set('mail_aanv',d.mail_aanv);
+  set('straat_goed',d.straat_goed); set('pc_goed',d.pc_goed); set('gem_goed',d.gem_goed);
+  set('afd_nr',d.afd_nr); set('sectie',d.sectie); set('kad_nr',d.kad_nr);
+  set('ki',d.ki); set('perc_opp',d.perc_opp); set('perc_breed',d.perc_breed);
+  set('bouwjaar_exact',d.bouwjaar); set('epeil',d.epeil); set('bouwverg',d.bouwverg);
+
+  // auto postcode→gemeente
+  if(d.pc_aanv) autogem('pc_aanv','gem_aanv');
+  if(d.pc_goed) autogem('pc_goed','gem_goed');
+
+  // match bemiddelaar chip
+  if(d.bemiddelaar){
+    const found = CHIPS.bemiddelaar.i.find(x=>x.toLowerCase().includes(d.bemiddelaar.toLowerCase()));
+    if(found){
+      ST.chips.bemiddelaar=[found];
+      document.querySelectorAll('#chips_bemiddelaar .chip').forEach(b=>{b.classList.toggle('on',b.textContent===found);});
+    } else {
+      set('bemid_vrij',d.bemiddelaar);
+    }
+  }
+  if(d.opmerkingen) set('bijzonder',d.opmerkingen);
+}
+
+// ═══════════════════════════════════════════════════════════ OUTPUT
+function v(id){return(document.getElementById(id)||{value:''}).value||'';}
+function chip(k){return(ST.chips[k]||[])[0]||'';}
+function chips(k){return(ST.chips[k]||[]).join(' ')||'-';}
+function row(id1,id2,id3,id4){
+  const vals=[v(id1),v(id2),v(id3),v(id4)];
+  return vals.some(x=>x&&x!=='0')?vals.map(x=>x||'-').join(' / '):null;
+}
+
+function buildOutput(){
+  const bemid=chip('bemiddelaar')||v('bemid_vrij')||'-';
+  const pc=v('pc_goed'); const gem=v('gem_goed');
+  const isolOut=chip('isolatie')==='E-peil: (zie veld)'?`E-peil: ${v('epeil')} kWh/m²/jaar.`:chip('isolatie');
+  const bjaarVal=v('bouwjaar_exact')?`Opgericht in ${v('bouwjaar_exact')}`:chip('bouwjaar');
+
+  const r = (lbl,val)=>`${lbl}: ${val||'-'}`;
+
+  const algemeen=[
+    '=== OPDRACHTGEGEVENS ===',
+    r('Dossiernummer',v('dossier')),
+    r('Doel krediet',v('doel')),
+    r('Datum plaatsbezoek',v('datum_bezoek')),
+    r('Bemiddelaar',bemid),
+    '',
+    '=== AANVRAGER(S) ===',
+    r('Aanvrager 1',v('aanv1')),
+    v('aanv2')?r('Aanvrager 2',v('aanv2')):'',
+    r('Adres',v('straat_aanv')+' '+v('pc_aanv')+' '+v('gem_aanv')),
+    r('Telefoon',v('tel_aanv')),
+    r('E-mail',v('mail_aanv')),
+    '',
+    '=== PAND ===',
+    r('Adres pand',v('straat_goed')+' '+pc+' '+gem),
+    r('Kadaster',gem+', '+v('afd_nr')+', '+v('sectie')+', '+v('kad_nr')),
+    r('Kadastraal inkomen',v('ki')+' €'),
+    r('E-peil',v('epeil')+' kWh/m²/jaar'),
+    r('Aard',chips('aard')),
+    r('Bebouwingstype',chip('bebtype')),
+    r('Bouwlagen',v('lagen')),
+    r('Entiteiten',v('entiteiten')),
+    r('Bouwjaar',bjaarVal),
+    r('Bouwvergunning',v('bouwverg')),
+    r('Bouwmisdrijf',chip('misdrijf')==='Aanwezig'?'Aanwezig — '+v('misdrijf_omschr'):'Geen'),
+  ].filter(x=>x!=='').join('\n');
+
+  const afm=[
+    '=== AFMETINGEN ===',
+    r('Perceelsbreedte',v('perc_breed')+' m'),
+    r('Perceelsoppervlakte',v('perc_opp')+' m²'),
+    r('Breedte voorgevel',v('gevel_breed')+' m'),
+    r('Bewoonbare oppervlakte',v('m2_bewoon')+' m²'),
+    r('Volume bewoonbaar',v('vol_bewoon')+' m³'),
+    r('Volume kelder/zolder',v('vol_kelder')+' m³'),
+    '',
+    'Afmetingen per onderdeel (breedte / diepte / opp / hoogte):',
+    ...([
+      ['Hoofdgebouw GV','hgv_b','hgv_d','hgv_o','hgv_h'],
+      ['Hoofdgebouw 1ste','h1_b','h1_d','h1_o','h1_h'],
+      ['Hoofdgebouw 2de','h2_b','h2_d','h2_o','h2_h'],
+      ['Aanbouw','aan_b','aan_d','aan_o','aan_h'],
+      ['Bijgebouw/garage','bij_b','bij_d','bij_o','bij_h'],
+      ['Tuinberging','tuin_b','tuin_d','tuin_o','tuin_h'],
+    ].map(([lbl,...ids])=>{const r2=row(...ids);return r2?`  ${lbl}: ${r2}`:'';})).filter(x=>x),
+    v('afm_opm')?'\nOpmerking: '+v('afm_opm'):'',
+  ].filter(x=>x!=='').join('\n');
+
+  let indeling='=== INDELING ===\n';
+  NIVEAUS.forEach(n=>{
+    const sel=ST.niveau[n];
+    const opm=document.getElementById('nopm_'+n)?.value||'';
+    indeling+=`Niveau ${n}: ${sel.length?sel.join(' '):'-'}`;
+    if(opm) indeling+=`\n  ↳ Opmerking: ${opm}`;
+    indeling+='\n';
+  });
+
+  const mat=[
+    '=== MATERIALEN & BOUWKENMERKEN ===',
+    r('Fundering',chip('fundering')),
+    r('Kelder',chip('kelder')),
+    r('Gevels',chip('gevels')),
+    r('Dak',chip('dak')),
+    r('Goten/afvoer',chip('goten')),
+    r('Buitenschrijnwerk',chip('buiten_schrijn')),
+    r('Beglazing',chip('glas')),
+    r('Rolluiken',chip('rolluiken')),
+    r('Garagepoort',chip('poort')),
+    r('Binnenschrijnwerk',chips('binnen_schrijn')),
+    r('Vloeren',chips('vloeren')),
+    r('Isolatie',isolOut),
+    r('Afwerkingsgraad',chip('afwerking')),
+  ].join('\n');
+
+  const kuitl=chips('keuken_uit');
+  let zonneText='';
+  if(chip('zonne')==='Met zonnepanelen'){
+    zonneText=`De fotovoltaïsche panelen met een jaarlijks vermogen van ${v('zonne_kwp')} kWp. Ingebruikname: ${v('zonne_jaar')}. ${chip('zonne_cert')||''}`;
+  }
+
+  const comfort=[
+    '=== COMFORT & INSTALLATIES ===',
+    r('Nutsvoorzieningen',chips('nuts')),
+    r('Verwarming',chip('verw')+(v('verw_detail')?' — '+v('verw_detail'):'')),
+    r('Keuken — uitrusting',kuitl),
+    r('Keuken — kwaliteit',chip('keuken_kwal')),
+    v('keuken_detail')?r('Detail keuken',v('keuken_detail')):'',
+    '',
+    'Sanitair:',
+    ST.chips.gt?.length ? r('  Gastentoilet',chips('gt')) : '',
+    ST.chips.t2?.length ? r('  Toilet 2',chips('t2')) : '',
+    ST.chips.bk1?.length ? r('  Badkamer 1',chips('bk1')) : '',
+    ST.chips.bk2?.length ? r('  Badkamer 2',chips('bk2')) : '',
+    ST.chips.wasplaats?.length ? r('  Wasplaats',chips('wasplaats')) : '',
+    r('Kwaliteit badkamer',chip('badkamer')),
+    v('sanitair_detail')?r('Detail sanitair',v('sanitair_detail')):'',
+    '',
+    r('Zonnepanelen',zonneText||chip('zonne')||'-'),
+  ].filter(x=>x!=='').join('\n');
+
+  const mobi=v('mobiscore')?` — Mobiscore: ${v('mobiscore')}/10`:'';
+  const omg=[
+    '=== OMGEVING & LIGGING ===',
+    r('Omgeving',chip('omgeving')),
+    r('Ligging van de woning',chip('ligging')),
+    r('Bereikbaarheid',chip('bereikbaarheid')+mobi),
+    r('Openbaar vervoer',chip('ov')),
+    r('Milieuelementen',chips('milieu')),
+    r('Erfdienstbaarheden',chip('erf')),
+    '',
+    '=== TOESTAND ===',
+    r('Staat van onderhoud',chip('onderhoud')),
+    r('Verkoopbaarheid',chip('verkoop')),
+    r('Gebruik van het goed',chip('gebruik')),
+    r('Uitgevoerde werken',chip('werken')+(v('werken_detail')?' — '+v('werken_detail'):'')),
+    v('bijzonder')?r('Bijzondere elementen',v('bijzonder')):'',
+    '',
+    'Elementen van waardevermeerdering:',
+    ...(ST.chips.appr||[]).map(x=>'• '+x),
+    '',
+    'Elementen van waardevermindering:',
+    ...(ST.chips.depr||[]).map(x=>'• '+x),
+  ].filter(x=>x!==undefined).join('\n');
+
+  const waarden=[
+    '=== SCHATTINGSWAARDEN ===',
+    r('Gecommuniceerde aankoopprijs','€ '+v('aankoop_prijs')),
+    r('Vetusteit',v('vetusteit')+' %'),
+    r('Onderhandse verkoopwaarde huidig','€ '+v('ohv_huidig')),
+    r('Onderhandse verkoopwaarde na werken','€ '+v('ohv_na')),
+    '',
+    'Werken:',
+    r('  Klant — aannemer','€ '+v('werk_klant_aan')),
+    r('  Klant — eigen werk','€ '+v('werk_klant_eigen')),
+    r('  Schatter — aannemer','€ '+v('werk_sch_aan')),
+    r('  Schatter — eigen werk','€ '+v('werk_sch_eigen')),
+    v('werk_verschil')?r('  Motivatie verschil',v('werk_verschil')):'',
+    '',
+    v('vergelijk')?r('Vergelijkingspunten',v('vergelijk')):'',
+  ].filter(x=>x!=='').join('\n');
+
+  document.getElementById('out_algemeen').textContent=algemeen+'\n\n'+afm;
+  document.getElementById('out_indeling').textContent=indeling;
+  document.getElementById('out_mat').textContent=mat;
+  document.getElementById('out_comfort').textContent=comfort;
+  document.getElementById('out_omg').textContent=omg;
+  document.getElementById('out_waarden').textContent=waarden;
+  document.getElementById('out_alles').textContent=[algemeen,'\n'+afm,'\n'+indeling,mat,comfort,omg,waarden].join('\n\n---\n\n');
+}
+
+function cp(id,btn){
+  const txt=document.getElementById(id).textContent;
+  const doCopy=()=>{btn.textContent='Gekopieerd ✓';btn.classList.add('ok');setTimeout(()=>{btn.textContent='Kopiëren';btn.classList.remove('ok');},2200);};
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(doCopy);}
+  else{const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);doCopy();}
+}
+
+function resetAll(){
+  if(!confirm('Alle gegevens wissen en opnieuw beginnen?')) return;
+  Object.keys(ST.chips).forEach(k=>ST.chips[k]=[]);
+  NIVEAUS.forEach(n=>ST.niveau[n]=[]);
+  document.querySelectorAll('input,textarea').forEach(el=>{
+    if(el.type==='date') el.value=new Date().toISOString().split('T')[0];
+    else el.value='';
+  });
+  document.querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  document.getElementById('aiStatus').className='ai-status';
+  document.getElementById('aiStatus').textContent='Nog geen document geladen.';
+  goTo(0);
+}
+
+// ═══════════════════════════════════════════════════════════ FOTO SYSTEEM
+
+const FOTO_CATS = [
+  {id:'gevel',    label:'Gevel'},
+  {id:'dak',      label:'Dak'},
+  {id:'interieur',label:'Interieur'},
+  {id:'keuken',   label:'Keuken'},
+  {id:'badkamer', label:'Badkamer'},
+  {id:'kelder',   label:'Kelder'},
+  {id:'tuin',     label:'Tuin/perceel'},
+  {id:'bijgebouw',label:'Bijgebouw'},
+  {id:'gebreken', label:'Gebreken'},
+  {id:'overig',   label:'Overig'},
+];
+
+let activeFotoCat = 'gevel';
+let fotoDB = {}; // { dossierKey: { catId: [{id, dataUrl, label}] } }
+
+function getDossierKey() {
+  const d = v('dossier') || v('straat_goed') || 'onbekend';
+  return d.trim().replace(/\s+/g,'_').toLowerCase();
+}
+
+function loadFotoDB() {
+  try {
+    const raw = localStorage.getItem('vg_fotos');
+    fotoDB = raw ? JSON.parse(raw) : {};
+  } catch(e) { fotoDB = {}; }
+}
+
+function saveFotoDB() {
+  try { localStorage.setItem('vg_fotos', JSON.stringify(fotoDB)); } catch(e) {
+    alert('Opslagfout: te veel foto\'s. Verwijder enkele foto\'s of exporteer eerst.');
+  }
+}
+
+function getFotoData(dossier, cat) {
+  if (!fotoDB[dossier]) fotoDB[dossier] = {};
+  if (!fotoDB[dossier][cat]) fotoDB[dossier][cat] = [];
+  return fotoDB[dossier][cat];
+}
+
+function initFotoSection() {
+  loadFotoDB();
+  // Build category buttons
+  const catsEl = document.getElementById('fotoCats');
+  catsEl.innerHTML = '';
+  FOTO_CATS.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'fcat' + (cat.id === activeFotoCat ? ' active' : '');
+    btn.dataset.cat = cat.id;
+    btn.innerHTML = cat.label + '<span class="fcnt" id="fcnt_'+cat.id+'">0</span>';
+    btn.onclick = () => switchFotoCat(cat.id);
+    catsEl.appendChild(btn);
+  });
+  updateFotoCounts();
+  renderFotoGrid();
+  updateFotoOverzicht();
+  updateFotoDossierLabel();
+}
+
+function updateFotoDossierLabel() {
+  const dk = getDossierKey();
+  const d = v('dossier') || '(nog geen dossiernummer ingevuld)';
+  const adres = v('straat_goed') ? ' · ' + v('straat_goed') + ' ' + v('pc_goed') + ' ' + v('gem_goed') : '';
+  document.getElementById('foto_dossier_label').textContent = d + adres;
+}
+
+function switchFotoCat(catId) {
+  activeFotoCat = catId;
+  document.querySelectorAll('.fcat').forEach(b => b.classList.toggle('active', b.dataset.cat === catId));
+  const lbl = FOTO_CATS.find(c => c.id === catId)?.label || catId;
+  document.getElementById('fotoUploadTitle').textContent = `Foto's — ${lbl}`;
+  renderFotoGrid();
+}
+
+function updateFotoCounts() {
+  const dk = getDossierKey();
+  FOTO_CATS.forEach(cat => {
+    const cnt = getFotoData(dk, cat.id).length;
+    const el = document.getElementById('fcnt_'+cat.id);
+    if (el) { el.textContent = cnt; el.style.display = cnt > 0 ? '' : 'none'; }
+  });
+}
+
+function renderFotoGrid() {
+  const dk = getDossierKey();
+  const fotos = getFotoData(dk, activeFotoCat);
+  const grid = document.getElementById('fotoGrid');
+  const empty = document.getElementById('fotoEmpty');
+  const count = document.getElementById('fotoCount');
+  grid.innerHTML = '';
+  if (fotos.length === 0) {
+    empty.style.display = 'block';
+    count.textContent = '';
+    return;
+  }
+  empty.style.display = 'none';
+  count.textContent = fotos.length + ' foto' + (fotos.length !== 1 ? "'s" : '') + ' in deze categorie';
+
+  fotos.forEach((foto, idx) => {
+    const item = document.createElement('div');
+    item.className = 'foto-item';
+    item.draggable = true;
+    item.dataset.idx = idx;
+
+    const img = document.createElement('img');
+    img.src = foto.dataUrl;
+    img.loading = 'lazy';
+    item.appendChild(img);
+
+    const del = document.createElement('button');
+    del.className = 'foto-del';
+    del.textContent = '×';
+    del.onclick = (e) => { e.stopPropagation(); deleteFoto(idx); };
+    item.appendChild(del);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'foto-lbl';
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.placeholder = 'Bijschrift...';
+    inp.value = foto.label || '';
+    inp.onclick = e => e.stopPropagation();
+    inp.onchange = () => { foto.label = inp.value; saveFotoDB(); };
+    lbl.appendChild(inp);
+    item.appendChild(lbl);
+
+    // Drag to reorder
+    item.ondragstart = e => { e.dataTransfer.setData('text/plain', idx); item.style.opacity='.4'; };
+    item.ondragend = () => { item.style.opacity='1'; };
+    item.ondragover = e => { e.preventDefault(); item.style.border='1px solid var(--accent)'; };
+    item.ondragleave = () => { item.style.border='1px solid var(--border)'; };
+    item.ondrop = e => {
+      e.preventDefault(); item.style.border='1px solid var(--border)';
+      const from = parseInt(e.dataTransfer.getData('text/plain'));
+      const to = idx;
+      if (from === to) return;
+      const arr = getFotoData(dk, activeFotoCat);
+      const moved = arr.splice(from, 1)[0];
+      arr.splice(to, 0, moved);
+      saveFotoDB(); renderFotoGrid();
+    };
+
+    const numBadge = document.createElement('div');
+    numBadge.style.cssText = 'position:absolute;top:4px;left:4px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:1px 5px';
+    numBadge.textContent = (idx + 1);
+    item.appendChild(numBadge);
+
+    grid.appendChild(item);
+  });
+}
+
+async function handleFotos(files) {
+  if (!files || files.length === 0) return;
+  const dk = getDossierKey();
+  const arr = getFotoData(dk, activeFotoCat);
+  const MAX_W = 1200; // resize large photos to max 1200px wide to save storage
+
+  for (const file of Array.from(files)) {
+    if (!file.type.startsWith('image/')) continue;
+    const dataUrl = await resizeImage(file, MAX_W);
+    arr.push({ id: Date.now() + Math.random(), dataUrl, label: '' });
+  }
+  saveFotoDB();
+  updateFotoCounts();
+  renderFotoGrid();
+  updateFotoOverzicht();
+}
+
+function resizeImage(file, maxW) {
+  return new Promise(res => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        res(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function deleteFoto(idx) {
+  if (!confirm('Foto verwijderen?')) return;
+  const dk = getDossierKey();
+  const arr = getFotoData(dk, activeFotoCat);
+  arr.splice(idx, 1);
+  saveFotoDB();
+  updateFotoCounts();
+  renderFotoGrid();
+  updateFotoOverzicht();
+}
+
+function fotoDragOver(e) { e.preventDefault(); document.getElementById('fotoDropzone').classList.add('over'); }
+function fotoDragLeave() { document.getElementById('fotoDropzone').classList.remove('over'); }
+function fotoDrop(e) {
+  e.preventDefault(); fotoDragLeave();
+  handleFotos(e.dataTransfer.files);
+}
+
+function updateFotoOverzicht() {
+  const dk = getDossierKey();
+  const lines = [];
+  let total = 0;
+  FOTO_CATS.forEach(cat => {
+    const fotos = getFotoData(dk, cat.id);
+    if (fotos.length > 0) {
+      lines.push(`${cat.label}: ${fotos.length} foto${fotos.length !== 1 ? "'s" : ''}`);
+      total += fotos.length;
+    }
+  });
+  const el = document.getElementById('fotoOverzicht');
+  if (total === 0) { el.textContent = 'Nog geen foto\'s toegevoegd.'; return; }
+  el.innerHTML = `<strong style="color:var(--text)">Totaal: ${total} foto's</strong><br>` + lines.join('<br>');
+}
+
+async function exportAllPhotos() {
+  const dk = getDossierKey();
+  let hasPhotos = false;
+  FOTO_CATS.forEach(cat => { if (getFotoData(dk, cat.id).length > 0) hasPhotos = true; });
+  if (!hasPhotos) { alert('Geen foto\'s om te exporteren voor dit dossier.'); return; }
+
+  // Without JSZip, download each photo individually with category+number naming
+  const btn = event.target;
+  btn.textContent = 'Downloaden...';
+  let count = 0;
+  for (const cat of FOTO_CATS) {
+    const fotos = getFotoData(dk, cat.id);
+    for (let i = 0; i < fotos.length; i++) {
+      const foto = fotos[i];
+      const a = document.createElement('a');
+      a.href = foto.dataUrl;
+      const dosNr = v('dossier').replace(/[^a-z0-9]/gi,'_') || 'dossier';
+      a.download = `${dosNr}_${cat.id}_${String(i+1).padStart(2,'0')}${foto.label ? '_'+foto.label.replace(/\s+/g,'_') : ''}.jpg`;
+      a.click();
+      count++;
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
+  btn.textContent = `${count} foto${count!==1?"'s":''} gedownload ✓`;
+  setTimeout(() => { btn.textContent = "Alle foto's downloaden (ZIP)"; }, 3000);
+}
+
+function exportPhotoList(btn) {
+  const dk = getDossierKey();
+  const dosNr = v('dossier') || 'Onbekend dossier';
+  const adres = v('straat_goed') ? v('straat_goed') + ' ' + v('pc_goed') + ' ' + v('gem_goed') : '';
+  let lines = [`FOTOLIJST — Dossier: ${dosNr} ${adres}`, ''];
+  let total = 0;
+  FOTO_CATS.forEach(cat => {
+    const fotos = getFotoData(dk, cat.id);
+    if (fotos.length === 0) return;
+    lines.push(`[${cat.label.toUpperCase()}]`);
+    fotos.forEach((f, i) => {
+      lines.push(`  Foto ${i+1}: ${f.label || '(geen bijschrift)'}`);
+      total++;
+    });
+    lines.push('');
+  });
+  lines.push(`Totaal: ${total} foto's`);
+  const txt = lines.join('\n');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(() => { btn.textContent='Fotolijst gekopieerd ✓'; setTimeout(()=>{btn.textContent='Fotolijst kopiëren voor Excel';},2500); });
+  }
+}
+
+// Patch nav buttons and pills after init to include foto refresh
+function goToWithFoto(i) {
+  goTo(i);
+  if (SECS[i] === "Foto's") initFotoSection();
+}
+
+init();
+
+// After init, re-patch nav pills and buttons
+document.getElementById('prevBtn').onclick = () => goToWithFoto(cur - 1);
+document.getElementById('nextBtn').onclick = () => goToWithFoto(cur + 1);
+document.querySelectorAll('#nav .pill').forEach((p, i) => { p.onclick = () => goToWithFoto(i); });
+</script>
+</body>
+</html>
